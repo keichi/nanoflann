@@ -1065,11 +1065,15 @@ class KDTreeBaseClass
 
             BoundingBox left_bbox(bbox);
             left_bbox[cutfeat].high = cutval;
+            #pragma omp task shared(obj)
             node->child1 = this->divideTree(obj, left, left + idx, left_bbox);
 
             BoundingBox right_bbox(bbox);
             right_bbox[cutfeat].low = cutval;
+            #pragma omp task shared(obj)
             node->child2 = this->divideTree(obj, left + idx, right, right_bbox);
+
+            #pragma omp taskwait
 
             node->node_type.sub.divlow  = left_bbox[cutfeat].high;
             node->node_type.sub.divhigh = right_bbox[cutfeat].low;
@@ -1412,16 +1416,23 @@ class KDTreeSingleIndexAdaptor
      */
     void buildIndex()
     {
-        Base::size_                = dataset_.kdtree_get_point_count();
-        Base::size_at_index_build_ = Base::size_;
-        init_vind();
-        this->freeIndex(*this);
-        Base::size_at_index_build_ = Base::size_;
-        if (Base::size_ == 0) return;
-        computeBoundingBox(Base::root_bbox_);
-        // construct the tree
-        Base::root_node_ =
-            this->divideTree(*this, 0, Base::size_, Base::root_bbox_);
+        #pragma omp parallel
+        {
+        #pragma omp single
+        {
+            Base::size_                = dataset_.kdtree_get_point_count();
+            Base::size_at_index_build_ = Base::size_;
+            init_vind();
+            this->freeIndex(*this);
+            Base::size_at_index_build_ = Base::size_;
+            if (Base::size_ > 0) {
+                computeBoundingBox(Base::root_bbox_);
+                // construct the tree
+                Base::root_node_ =
+                    this->divideTree(*this, 0, Base::size_, Base::root_bbox_);
+            }
+        }
+        }
     }
 
     /** \name Query methods

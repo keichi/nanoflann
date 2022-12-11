@@ -26,7 +26,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *************************************************************************/
 
-#include <nanoflann.hpp>
+#include "../include/nanoflann.hpp"
 using namespace nanoflann;
 
 #include <cstdlib>
@@ -95,6 +95,6 @@ void kdtree_demo(const size_t nSamples, const size_t dim)
 int main()
 {
     // Randomize Seed
-    srand(static_cast<unsigned int>(time(nullptr)));
-    kdtree_demo(1000 /* samples */, SAMPLES_DIM /* dim */);
+    // srand(static_cast<unsigned int>(time(nullptr)));
+    kdtree_demo(10000000 /* samples */, SAMPLES_DIM /* dim */);
 }
